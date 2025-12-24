@@ -1,0 +1,22 @@
+{
+  "name": "college-clubs-hub",
+  "version": "1.0.0",
+  "description": "University clubs and events management web app",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sukhoroslov/college-clubs-hub.git"
+  },
+  "keywords": ["node", "express", "mongodb", "ejs", "docker"],
+  "author": "Web Technologies Team",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Sukhoroslov/college-clubs-hub/issues"
+  },
+  "homepage": "https://github.com/Sukhoroslov/college-clubs-hub#readme"
+}
