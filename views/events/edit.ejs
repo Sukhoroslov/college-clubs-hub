@@ -1,0 +1,42 @@
+<% layout('layout') %>
+
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card mt-4">
+      <div class="card-body">
+        <h2>Edit Event</h2>
+        <form action="/events/<%= event._id %>/edit" method="POST" enctype="multipart/form-data">
+          
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" name="title" class="form-control" value="<%= event.title %>" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Date</label>
+            <% const dateStr = new Date(event.date).toISOString().slice(0, 16); %>
+            <input type="datetime-local" name="date" class="form-control" value="<%= dateStr %>" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Location</label>
+            <input type="text" name="location" class="form-control" value="<%= event.location %>" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="4" required><%= event.description %></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Change Poster (Optional)</label>
+            <input type="file" name="poster" class="form-control" accept="image/*">
+          </div>
+
+          <button type="submit" class="btn btn-primary">Update Event</button>
+          <a href="/events/<%= event._id %>" class="btn btn-secondary">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

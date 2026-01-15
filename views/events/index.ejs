@@ -1,0 +1,25 @@
+<% layout('layout') %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1>Upcoming Events</h1>
+  <a href="/events/create" class="btn btn-success">Create Event</a>
+</div>
+
+<div class="row">
+  <% events.forEach(event => { %>
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <% if(event.posterPath) { %>
+          <img src="<%= event.posterPath %>" class="card-img-top" style="height: 200px; object-fit: cover;">
+        <% } else { %>
+          <div class="bg-light text-center py-5" style="height: 200px;">No Image</div>
+        <% } %>
+        <div class="card-body">
+          <h5 class="card-title"><%= event.title %></h5>
+          <h6 class="card-subtitle mb-2 text-muted"><%= new Date(event.date).toLocaleDateString() %></h6>
+          <a href="/events/<%= event._id %>" class="btn btn-outline-primary btn-sm">Details</a>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+</div>

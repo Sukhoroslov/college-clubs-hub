@@ -1,0 +1,51 @@
+<% layout('layout') %>
+
+<div class="container mt-4">
+  <a href="/events" class="btn btn-secondary mb-3">&larr; Back</a>
+
+  <div class="row">
+    <div class="col-md-5">
+      <% if (event.posterPath) { %>
+        <img src="<%= event.posterPath %>" class="img-fluid rounded shadow" alt="Poster">
+      <% } else { %>
+        <div class="alert alert-light border text-center p-5">No Poster</div>
+      <% } %>
+    </div>
+
+    <div class="col-md-7">
+      <h1><%= event.title %></h1>
+      <h5 class="text-muted mb-4">Hosted by: <%= event.club.name %></h5>
+
+      <ul class="list-group mb-4">
+        <li class="list-group-item"><strong>Date:</strong> <%= new Date(event.date).toLocaleString() %></li>
+        <li class="list-group-item"><strong>Location:</strong> <%= event.location %></li>
+        <li class="list-group-item"><strong>Attendees:</strong> <%= event.attendees.length %></li>
+      </ul>
+
+      <p class="lead"><%= event.description %></p>
+
+      <% if (currentUser) { %>
+        <% const isAttending = event.attendees.some(u => u._id.equals(currentUser._id)); %>
+        
+        <% if (isAttending) { %>
+          <button class="btn btn-success" disabled>✓ Attending</button>
+        <% } else { %>
+          <form action="/events/<%= event._id %>/rsvp" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-primary">RSVP Now</button>
+          </form>
+        <% } %>
+
+        <% if (event.club.president.toString() === currentUser._id.toString()) { %>
+          <div class="mt-3">
+            <a href="/events/<%= event._id %>/edit" class="btn btn-warning btn-sm">Edit</a>
+            <form action="/events/<%= event._id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('delete event?');">
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </div>
+        <% } %>
+      <% } else { %>
+        <div class="alert alert-info"><a href="/login">Login</a> to RSVP</div>
+      <% } %>
+    </div>
+  </div>
+</div>
