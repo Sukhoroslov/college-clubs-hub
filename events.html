@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clubs & Events Croatia</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #ffeef8 0%, #e0f7fa 50%, #f3e5f5 100%);
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            color: #4a148c;
+        }
+        .container-main {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            box-shadow: 0 15px 40px rgba(171, 71, 188, 0.18);
+            padding: 2.5rem;
+            margin: 3rem auto;
+            max-width: 1200px;
+            border: 1px solid rgba(233, 30, 99, 0.12);
+        }
+        .hero {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            height: 420px;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 12px 40px rgba(171, 71, 188, 0.25);
+        }
+        .hero img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.9s ease;
+        }
+        .hero:hover img {
+            transform: scale(1.06);
+        }
+        .hero-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-shadow: 0 3px 12px rgba(0,0,0,0.65);
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.6rem, 6vw, 4.8rem);
+            font-weight: 700;
+            z-index: 2;
+        }
+        .form-control, .form-select {
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+            border: 1px solid #e91e63;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #ec407a, #ab47bc);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.8rem;
+            font-weight: 600;
+            transition: all 0.35s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(171, 71, 188, 0.4);
+        }
+        .table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+        .table thead {
+            background: linear-gradient(90deg, #f06292, #ba68c8);
+            color: white;
+        }
+        .table th {
+            cursor: pointer;
+            user-select: none;
+        }
+        .table th:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        .badge {
+            padding: 0.5em 1em;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .sortable::after {
+            content: ' ↕';
+            opacity: 0.6;
+            font-size: 0.9em;
+        }
+        #loading, #noResults {
+            font-size: 1.4rem;
+            color: #7b1fa2;
+            text-align: center;
+            padding: 3rem 0;
+        }
+        .pagination .page-link {
+            color: #ab47bc;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #ab47bc;
+            border-color: #ab47bc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-main">
+    <div class="hero">
+        <img src="https://images.pexels.com/photos/3566139/pexels-photo-3566139.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="Croatia nightlife">
+        <div class="hero-text">Clubs & Events in Croatia</div>
+    </div>
+
+    <form id="searchForm" class="mb-5">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-7">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search by name, city, type...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="typeFilter">
+                    <option value="">All types</option>
+                    <option value="Club">Club</option>
+                    <option value="Event">Event</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </div>
+        <div id="formError" class="text-danger mt-2 fw-bold"></div>
+    </form>
+
+    <div id="loading" class="d-none">Loading events and clubs...</div>
+    <div id="noResults" class="d-none">No matching clubs or events found.</div>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-striped" id="resultsTable">
+            <thead>
+                <tr>
+                    <th class="sortable" data-field="name">Name</th>
+                    <th class="sortable" data-field="type">Type</th>
+                    <th class="sortable" data-field="date">Date</th>
+                    <th class="sortable" data-field="location">Location</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+        </table>
+    </div>
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center mt-4" id="pagination"></ul>
+    </nav>
+</div>
+
+<script>
+    // Real Croatian clubs & events data (2025/2026 context)
+    const mockData = [
+        { name: "Aquarius Club", type: "Club", date: "", location: "Zagreb" },
+        { name: "Nocturno Club", type: "Club", date: "", location: "Zagreb" },
+        { name: "Gallery Club", type: "Club", date: "", location: "Split" },
+        { name: "Central Club", type: "Club", date: "", location: "Split" },
+        { name: "Culture Club Revelin", type: "Club", date: "", location: "Dubrovnik" },
+        { name: "Club Hemingway", type: "Club", date: "", location: "Hvar" },
+        { name: "Carpe Diem Beach", type: "Club", date: "", location: "Hvar" },
+        { name: "Papaya Club", type: "Club", date: "", location: "Zrće Beach, Novalja (Pag)" },
+        { name: "Kalypso Zrće", type: "Club", date: "", location: "Zrće Beach, Novalja (Pag)" },
+        { name: "Močvara", type: "Club", date: "", location: "Zagreb" },
+        { name: "Club Žabac", type: "Club", date: "", location: "Rijeka" },
+        { name: "Tunguz Bar & Club", type: "Club", date: "", location: "Osijek" },
+        
+        { name: "INmusic Festival 2026", type: "Event", date: "2026-06-22", location: "Zagreb" },
+        { name: "Ultra Europe 2026", type: "Event", date: "2026-07-10", location: "Split (Poljud Stadium)" },
+        { name: "Hideout Festival 2026", type: "Event", date: "2026-06-28", location: "Zrće Beach, Novalja (Pag)" },
+        { name: "Sonus Festival 2026", type: "Event", date: "2026-08-02", location: "Zrće Beach, Novalja (Pag)" },
+        { name: "Outlook Origins 2026", type: "Event", date: "2026-07-03", location: "Pula (Fort Punta Christo)" },
+        { name: "Dimensions Festival 2026", type: "Event", date: "2026-09-04", location: "Pula (Fort Punta Christo)" },
+        { name: "Terraneo Festival 2026", type: "Event", date: "2026-08-12", location: "Šibenik" },
+        { name: "Sea Star Festival 2026", type: "Event", date: "2026-05-21", location: "Umag" },
+        { name: "Pulsar Summer Festival 2026", type: "Event", date: "2026-07-18", location: "Poreč" },
+        { name: "Electric Elephant 2026", type: "Event", date: "2026-07-25", location: "Tisno" },
+        { name: "Love International 2026", type: "Event", date: "2026-07-11", location: "Tisno" }
+    ];
+
+    const ITEMS_PER_PAGE = 10;
+    let currentPage = 1;
+    let currentSort = { field: 'name', direction: 'asc' };
+    let currentQuery = '';
+    let currentType = '';
+
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    const typeFilter = document.getElementById('typeFilter');
+    const resultsBody = document.getElementById('resultsBody');
+    const pagination = document.getElementById('pagination');
+    const loading = document.getElementById('loading');
+    const noResults = document.getElementById('noResults');
+    const formError = document.getElementById('formError');
+
+    function filterAndSortData() {
+        let data = [...mockData];
+
+        // Filter by search query
+        if (currentQuery.trim()) {
+            const q = currentQuery.toLowerCase().trim();
+            data = data.filter(item =>
+                item.name.toLowerCase().includes(q) ||
+                item.location.toLowerCase().includes(q) ||
+                item.type.toLowerCase().includes(q)
+            );
+        }
+
+        // Filter by type
+        if (currentType) {
+            data = data.filter(item => item.type === currentType);
+        }
+
+        // Sort
+        data.sort((a, b) => {
+            let valA = a[currentSort.field] || '';
+            let valB = b[currentSort.field] || '';
+
+            if (currentSort.field === 'date' && valA && valB) {
+                valA = new Date(valA);
+                valB = new Date(valB);
+            }
+
+            if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+            if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return data;
+    }
+
+    function renderResults() {
+        loading.classList.remove('d-none');
+        resultsBody.innerHTML = '';
+        pagination.innerHTML = '';
+        noResults.classList.add('d-none');
+
+        setTimeout(() => {  // simulate network delay
+            const filteredData = filterAndSortData();
+            const totalItems = filteredData.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageItems = filteredData.slice(start, end);
+
+            if (pageItems.length === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                pageItems.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${escapeHTML(item.name)}</strong></td>
+                        <td><span class="badge ${item.type === 'Club' ? 'bg-info' : 'bg-success'}">${item.type}</span></td>
+                        <td>${item.date ? new Date(item.date).toLocaleDateString('hr-HR') : '<em>Ongoing</em>'}</td>
+                        <td>${escapeHTML(item.location)}</td>
+                    `;
+                    resultsBody.appendChild(row);
+                });
+            }
+
+            renderPagination(totalPages);
+            loading.classList.add('d-none');
+        }, 400);
+    }
+
+    function renderPagination(totalPages) {
+        if (totalPages <= 1) return;
+
+        const prev = document.createElement('li');
+        prev.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prev.innerHTML = `<a class="page-link" href="#" data-page="${currentPage-1}">Previous</a>`;
+        pagination.appendChild(prev);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+            pagination.appendChild(li);
+        }
+
+        const next = document.createElement('li');
+        next.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        next.innerHTML = `<a class="page-link" href="#" data-page="${currentPage+1}">Next</a>`;
+        pagination.appendChild(next);
+    }
+
+    function escapeHTML(str) {
+        return str.replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[m]);
+    }
+
+    // Event listeners
+    searchForm.addEventListener('submit', e => {
+        e.preventDefault();
+        formError.textContent = '';
+
+        const query = searchInput.value.trim();
+        if (query.length === 1 || query.length === 2) {
+            formError.textContent = 'Please enter at least 3 characters or leave empty';
+            return;
+        }
+
+        currentQuery = query;
+        currentType = typeFilter.value;
+        currentPage = 1;
+        renderResults();
+    });
+
+    pagination.addEventListener('click', e => {
+        e.preventDefault();
+        if (e.target.tagName !== 'A') return;
+        const page = parseInt(e.target.dataset.page);
+        if (isNaN(page)) return;
+
+        currentPage = page;
+        renderResults();
+    });
+
+    document.querySelectorAll('.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+            const field = th.dataset.field;
+
+            if (currentSort.field === field) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.field = field;
+                currentSort.direction = 'asc';
+            }
+
+            currentPage = 1;
+            renderResults();
+        });
+    });
+
+    // Initial load
+    renderResults();
+</script>
+</body>
+</html>
